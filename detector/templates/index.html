@@ -523,7 +523,7 @@
         });
 
         async function performClassification(text) {
-            const response = await fetch('/', {
+            const response = await fetch('/api/detect/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
