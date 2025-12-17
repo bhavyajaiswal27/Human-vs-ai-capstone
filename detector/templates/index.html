@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Detector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: #0a0e1a;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 60px;
+            background: #0f1419;
+            border-bottom: 1px solid #1a1f2e;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .logo-icon {
+            width: 24px;
+            height: 24px;
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: #9ca3af;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: #ffffff;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-signup {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .btn-signup:hover {
+            background: #2563eb;
+        }
+
+        .btn-login {
+            color: #9ca3af;
+            padding: 8px 20px;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 80px 20px 60px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: #9ca3af;
+            line-height: 1.6;
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px 60px;
+        }
+
+        .input-box {
+            background: #1a1f2e;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 200px;
+            background: #0f1419;
+            border: 1px solid #2a2f3e;
+            border-radius: 8px;
+            padding: 20px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+
+        .text-input::placeholder {
+            color: #4b5563;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upload-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            color: #3b82f6;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .upload-btn:hover {
+            background: #1a1f2e;
+        }
+
+        .word-count {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .detect-btn {
+            background: #4b5563;
+            color: white;
+            padding: 12px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .detect-btn:hover:not(:disabled) {
+            background: #374151;
+        }
+
+        .detect-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading-spinner {
+            border: 3px solid #1a1f2e;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .results-header {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .score-card {
+            background: #1a1f2e;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .score-circle {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 20px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .circle-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 12px solid #2a2f3e;
+        }
+
+        .circle-progress {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 12px solid transparent;
+            border-top-color: #f59e0b;
+            border-right-color: #f59e0b;
+            transform: rotate(-90deg);
+            transition: transform 1s ease;
+        }
+
+        .score-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        .score-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: #9ca3af;
+        }
+
+        .score-description {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .content-card {
+            background: #1a1f2e;
+            border-radius: 12px;
+            padding: 30px;
+        }
+
+        .content-text {
+            color: #d1d5db;
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+
+        .highlight {
+            background: rgba(251, 191, 36, 0.2);
+            padding: 2px 0;
+        }
+
+        .how-it-works {
+            margin-top: 80px;
+        }
+
+        .how-it-works-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .how-it-works-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .how-it-works-header p {
+            color: #9ca3af;
+            font-size: 1rem;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .step-card {
+            background: #1a1f2e;
+            border-radius: 12px;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 20px;
+            background: #2a2f3e;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3b82f6;
+            font-size: 1.5rem;
+        }
+
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .step-description {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 20px;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .steps {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <div class="logo-icon"></div>
+            <span>AI Detector</span>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="nav-link">About</a>
+            <a href="#" class="nav-link">Pricing</a>
+            <a href="#" class="nav-link">Contact</a>
+        </div>
+        <div class="nav-buttons">
+            <a href="#" class="btn-signup">Sign Up</a>
+            <a href="#" class="btn-login">Log In</a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <h1>AI Content Detector</h1>
+        <p>Ensure authenticity and originality in your content. Paste your text below or upload a file to get a detailed analysis.</p>
+    </div>
+
+    <div class="main-container">
+        <div class="input-box">
+            <textarea 
+                id="textInput" 
+                class="text-input" 
+                placeholder="Paste your text here... (min. 50 words)"
+            ></textarea>
+            <div class="bottom-bar">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    <span>📎</span> Upload File
+                </button>
+                <span class="word-count" id="wordCount">0 / 1600 words</span>
+                <button id="detectBtn" class="detect-btn" onclick="detectContent()">
+                    Detect AI Content
+                </button>
+            </div>
+            <input type="file" id="fileInput" style="display: none;" accept=".txt,.doc,.docx">
+        </div>
+
+        <div id="loadingSection" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Analyzing content...</p>
+        </div>
+
+        <div id="resultsSection" class="results-section">
+            <h2 class="results-header">Analysis Results</h2>
+            <div class="results-grid">
+                <div class="score-card">
+                    <div class="score-text">
+                        <span class="score-label" id="scoreLabel">AI Generated</span>
+                    </div>
+                    <p class="score-description" id="scoreDescription">This content is highly likely to be AI-generated. Review the highlighted sections for details.</p>
+                </div>
+                <div class="content-card">
+                    <div class="content-text" id="highlightedText">
+                        In the heart of the digital age, the proliferation of artificial intelligence has fundamentally reshaped countless industries. <span class="highlight">This technological revolution, driven by advancements in machine learning and neural networks, offers unprecedented opportunities for innovation and efficiency.</span> From automating mundane tasks to solving complex global challenges, AI's potential seems limitless. However, navigating this new frontier requires careful consideration of ethical implications and societal impact. <span class="highlight">The synergy between human creativity and machine intelligence promises a future where capabilities are augmented, not replaced.</span> Ensuring that AI development is guided by principles of transparency, fairness, and accountability is paramount for a prosperous coexistence. The journey is just beginning, and the collaborative spirit between humans and AI will define the next chapter of our evolution.
+                    </div>
+                </div>
+            </div>
+
+            <div class="how-it-works">
+                <div class="how-it-works-header">
+                    <h2>How It Works</h2>
+                    <p>Our advanced AI analyzes your text for patterns and characteristics typical of AI-generated content, providing you with a clear and actionable score.</p>
+                </div>
+                <div class="steps">
+                    <div class="step-card">
+                        <div class="step-icon">📄</div>
+                        <h3 class="step-title">1. Paste or Upload</h3>
+                        <p class="step-description">Simply paste your text into the box or upload a file from your device.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-icon">🧠</div>
+                        <h3 class="step-title">2. Analyze Content</h3>
+                        <p class="step-description">Our powerful algorithm scans your content in seconds, checking for AI patterns.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-icon">📊</div>
+                        <h3 class="step-title">3. View Results</h3>
+                        <p class="step-description">Get a clear percentage score and see highlighted sections for review.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // Word count functionality
+        const textInput = document.getElementById('textInput');
+        const wordCount = document.getElementById('wordCount');
+        
+        textInput.addEventListener('input', function() {
+            const text = this.value.trim();
+            const words = text ? text.split(/\s+/).length : 0;
+            wordCount.textContent = `${words} / 1600 words`;
+        });
+
+        // File upload functionality
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('textInput').value = e.target.result;
+                    textInput.dispatchEvent(new Event('input'));
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        async function performClassification(text) {
+            const response = await fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({ text_input: text })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Something went wrong on the server.');
+            }
+
+            const data = await response.json();
+            return data.prediction;
+        }
+
+        async function detectContent() {
+            const text = textInput.value.trim();
+            
+            if (!text) {
+                alert('Please enter some text to analyze!');
+                return;
+            }
+
+            const words = text.split(/\s+/).length;
+            if (words < 50) {
+                alert('Please enter at least 50 words.');
+                return;
+            }
+
+            const detectBtn = document.getElementById('detectBtn');
+            const loadingSection = document.getElementById('loadingSection');
+            const resultsSection = document.getElementById('resultsSection');
+            
+            detectBtn.disabled = true;
+            loadingSection.style.display = 'block';
+            resultsSection.style.display = 'none';
+
+            try {
+                const prediction = await performClassification(text);
+                displayResults(prediction, text);
+                
+                loadingSection.style.display = 'none';
+                resultsSection.style.display = 'block';
+                
+                // Scroll to results
+                resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+            } catch (error) {
+                console.error('Classification error:', error);
+                alert('An error occurred during classification: ' + error.message);
+                loadingSection.style.display = 'none';
+            } finally {
+                detectBtn.disabled = false;
+            }
+        }
+
+        function displayResults(prediction, originalText) {
+            const scoreLabelElement = document.getElementById('scoreLabel');
+            const scoreDescriptionElement = document.getElementById('scoreDescription');
+            
+            let label = '';
+            let description = '';
+            
+            if (prediction.toLowerCase() === 'human') {
+                label = 'Human Written';
+                description = 'This content appears to be human-written.';
+            } else if (prediction.toLowerCase() === 'ai') {
+                label = 'AI Generated';
+                description = 'This content appears to be AI-generated.';
+            } else {
+                label = 'Unclassified';
+                description = 'Unable to confidently classify the content.';
+            }
+            
+            scoreLabelElement.textContent = label;
+            scoreDescriptionElement.textContent = description;
+            highlightedText.innerHTML = originalText;
+        }
+
+        // Initial check for Django template rendering
+        window.onload = function() {
+            const initialPredictionElement = document.getElementById('initialPrediction');
+            if (initialPredictionElement && initialPredictionElement.dataset.prediction) {
+                const prediction = initialPredictionElement.dataset.prediction;
+                const text = textInput.value;
+                if (text) {
+                    displayResults(prediction, text);
+                    document.getElementById('resultsSection').style.display = 'block';
+                }
+            }
+        };
+    </script>
+</body>
+</html>
